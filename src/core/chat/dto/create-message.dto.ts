@@ -7,5 +7,5 @@ export class CreateMessageDto {
 
   @IsNotEmpty()
   @IsString()
-  sender: string;
+  senderId: string;
 }
