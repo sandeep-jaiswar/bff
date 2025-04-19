@@ -12,7 +12,7 @@ import { EventServiceClient } from './event.service';
         options: {
           package: 'com.eligius.event',
           protoPath: join(__dirname, './event.proto'),
-          url: 'localhost:9090',
+          url: process.env.GRPC_EVENT_SERVICE_URL || 'localhost:9090',
         },
       },
     ]),

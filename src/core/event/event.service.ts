@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 interface GrpcEventService {
   SendEvent(data: { type: string; key: string; payload: string }): Observable<{
@@ -22,13 +22,18 @@ export class EventServiceClient implements OnModuleInit {
   }
 
   async sendEvent(type: string, key: string, payload: any): Promise<string> {
-    const result = await this.grpcService
-      .SendEvent({
-        type,
-        key,
-        payload: JSON.stringify(payload),
-      })
-      .toPromise();
-    return result.status;
+    try {
+      const result = await firstValueFrom(
+        this.grpcService.SendEvent({
+          type,
+          key,
+          payload: JSON.stringify(payload),
+        }),
+      );
+      return result.status;
+    } catch (error) {
+      console.error('Error sending event:', error);
+      throw new Error(`Failed to send event: ${error.message}`);
+    }
   }
 }
