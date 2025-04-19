@@ -1,17 +1,106 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
+import { CreateMessageDto } from '../dto/create-message.dto';
+import { Message } from '../models/message.model';
 
 @Injectable()
 export class ChatRepository {
+  private readonly logger = new Logger(ChatRepository.name);
   constructor(private prisma: PrismaService) {}
 
-  async createMessage(content: string, sender: string) {
-    return this.prisma.message.create({
-      data: { content, sender },
+  async createMessage(createMessageDto: CreateMessageDto): Promise<Message> {
+    const { content, sender } = createMessageDto;
+    if (!content || !sender) {
+      throw new BadRequestException('Content and sender are required');
+    }
+    try {
+      return this.prisma.message.create({
+        data: { content, sender },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to create message: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to create message');
+    }
+  }
+
+  async findAll(page = 1, limit = 10, orderBy: 'asc' | 'desc' = 'desc') {
+    const skip = (page - 1) * limit;
+
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.message.findMany({
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: orderBy,
+          },
+        }),
+        this.prisma.message.count(),
+      ]);
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch messages: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException('Failed to fetch messages');
+    }
+  }
+
+  async findBySender(sender: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    return this.prisma.message.findMany({
+      where: { sender },
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findAll() {
-    return this.prisma.message.findMany();
+  async findByDateRange(startDate: Date, endDate: Date, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    return this.prisma.message.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async deleteMessage(id: string) {
+    return this.prisma.message.delete({
+      where: { id },
+    });
+  }
+
+  async updateMessage(id: string, content: string) {
+    return this.prisma.message.update({
+      where: { id },
+      data: { content },
+    });
   }
 }

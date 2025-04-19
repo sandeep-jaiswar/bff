@@ -9,7 +9,8 @@ datasource db {
 
 model Message {
   id        String   @id @default(uuid())
-  content   String
-  sender    String
+  content   String   @db.Text
+  senderId  String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
