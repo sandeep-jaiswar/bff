@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package com.eligius.event;
+
+option java_multiple_files = true;
+option java_package = "com.eligius.eventservice.grpc";
+option java_outer_classname = "EventProto";
+
+// EventService provides gRPC endpoints for sending and receiving events.
+// This service replaces the previous Kafka-based messaging infrastructure.
+service EventService {
+  // SendEvent accepts a single event and returns a confirmation response
+  rpc SendEvent (EventRequest) returns (EventResponse);
+  // StreamEvents provides a streaming interface for clients to receive events based on a filter
+  rpc StreamEvents (EventFilter) returns (stream EventResponse);
+}
+
+message EventRequest {
+  string type = 1;
+  string key = 2;
+  string payload = 3;
+}
+
+message EventResponse {
+  string status = 1;
+  string topic = 2;
+  string receivedPayload = 3;
+  string timestamp = 4;
+}
+
+message EventFilter {
+  string topic = 1;
+}
