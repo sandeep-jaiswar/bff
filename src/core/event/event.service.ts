@@ -9,6 +9,13 @@ interface GrpcEventService {
     receivedPayload: string;
     timestamp: string;
   }>;
+
+  StreamEvents(data: { topic: string }): Observable<{
+    status: string;
+    topic: string;
+    receivedPayload: string;
+    timestamp: string;
+  }>;
 }
 
 @Injectable()
@@ -35,5 +42,14 @@ export class EventServiceClient implements OnModuleInit {
       console.error('Error sending event:', error);
       throw new Error(`Failed to send event: ${error.message}`);
     }
+  }
+
+  streamEvents(topic: string): Observable<{
+    status: string;
+    topic: string;
+    receivedPayload: string;
+    timestamp: string;
+  }> {
+    return this.grpcService.StreamEvents({ topic });
   }
 }
