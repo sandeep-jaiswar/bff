@@ -59,7 +59,9 @@ export class MatchService {
     const partnerId = this.sessionManager.getPartnerId(client.id);
     if (partnerId) {
       const partner = this.server?.sockets.sockets.get(partnerId);
-      this.emitter.emitMatchDisconnected(partner);
+      if (partner) {
+        this.emitter.emitMatchDisconnected(partner);
+      }
       this.sessionManager.removeMatch(partnerId);
     }
 

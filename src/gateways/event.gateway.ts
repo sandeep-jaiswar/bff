@@ -74,8 +74,19 @@ export class EventGateway
 
   @SubscribeMessage(EventTopics.EVENT_MATCH_MESSAGE)
   handleNewMessage(client: Socket, message: ChatMessage): void {
-    this.logger.debug(`Message from ${client.id}: ${message.content}`);
-    this.server.emit(EventTopics.EVENT_MATCH_MESSAGE, message);
+    const partnerId = this.matchingService.getPartnerId(client.id);
+    if (!partnerId) {
+      this.logger.warn(`Partner not found for client ${client.id}. Dropping message.`);
+      return;
+    }
+
+    // Minimal logging – do not log entire message content
+    this.logger.debug(`Message from ${client.id} to ${partnerId}`);
+
+    // Echo to sender
+    client.emit(EventTopics.EVENT_MATCH_MESSAGE, message);
+    // Deliver only to partner
+    this.server.to(partnerId).emit(EventTopics.EVENT_MATCH_MESSAGE, message);
   }
 
   @SubscribeMessage(EventTopics.EVENT_MATCH_DISCONNECTED)
