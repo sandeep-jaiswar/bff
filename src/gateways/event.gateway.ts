@@ -72,11 +72,23 @@ export class EventGateway
     this.matchingService.addToQueue(client);
   }
 
+  @SubscribeMessage(EventTopics.EVENT_MATCH_QUEUED)
+  handleInQueue(client: Socket): void {
+    this.matchingService.addToQueue(client);
+  }
+
+  @SubscribeMessage(EventTopics.EVENT_MATCH_CONNECTED)
+  handleMatchConnected(client: Socket): void {
+    this.matchingService.addToQueue(client);
+  }
+
   @SubscribeMessage(EventTopics.EVENT_MATCH_MESSAGE)
   handleNewMessage(client: Socket, message: ChatMessage): void {
     const partnerId = this.matchingService.getPartnerId(client.id);
     if (!partnerId) {
-      this.logger.warn(`Partner not found for client ${client.id}. Dropping message.`);
+      this.logger.warn(
+        `Partner not found for client ${client.id}. Dropping message.`,
+      );
       return;
     }
 
