@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { EventServiceClient } from './event.service';
 
+@Global()
 @Module({
   imports: [
     ClientsModule.register([

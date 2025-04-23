@@ -8,8 +8,8 @@ export class ChatController {
 
   @Post('message')
   async sendMessage(@Body() body: SendMessageDto) {
-    const type = 'anonymous.user.created';
-    const key = body.sender;
+    const type = 'chat.message.sent';
+    const key = 'chat.message.sent';
     try {
       const status = await this.eventService.sendEvent(type, key, body);
       return { status, success: true };
